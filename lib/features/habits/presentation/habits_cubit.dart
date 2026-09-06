@@ -75,6 +75,23 @@ class HabitsCubit extends Cubit<HabitsState> {
     await _commit([...state.habits, habit]);
   }
 
+  Future<void> edit({
+    required String id,
+    required String name,
+    required int color,
+    required int icon,
+  }) async {
+    await _commit(
+      state.habits
+          .map(
+            (habit) => habit.id == id
+                ? habit.copyWith(name: name.trim(), color: color, icon: icon)
+                : habit,
+          )
+          .toList(),
+    );
+  }
+
   Future<void> toggleDay(String id, DateTime date) async {
     final key = dayKey(date);
     final updated = state.habits.map((habit) {
