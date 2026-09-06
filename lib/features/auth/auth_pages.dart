@@ -197,6 +197,11 @@ class _BiometricLockGateState extends State<BiometricLockGate>
   bool locked = false;
   bool authenticating = false;
 
+  /// Set once the prompt has been shown for the current lock, so a dismissed
+  /// prompt lands on the retry button instead of asking again on resume.
+  bool promptShown = false;
+  bool failed = false;
+
   @override
   void initState() {
     super.initState();
@@ -211,37 +216,102 @@ class _BiometricLockGateState extends State<BiometricLockGate>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.enabled && state == AppLifecycleState.paused) {
+    if (!widget.enabled) return;
+    // The system biometric prompt backgrounds the app itself, so ignore the
+    // lifecycle while it is up - otherwise a cancelled prompt immediately
+    // triggers a new one and the user can never reach the retry button.
+    if (authenticating) return;
+    if (state == AppLifecycleState.paused) {
       setState(() => locked = true);
-    } else if (widget.enabled && state == AppLifecycleState.resumed && locked) {
+    } else if (state == AppLifecycleState.resumed && locked && !promptShown) {
       _unlock();
     }
   }
 
   Future<void> _unlock() async {
     if (authenticating) return;
-    setState(() => authenticating = true);
+    final strings = AppStrings.of(context);
+    setState(() {
+      authenticating = true;
+      promptShown = true;
+      failed = false;
+    });
+    var success = false;
     try {
-      final success = await auth.authenticate(
-        localizedReason: 'Unlock Habit tracker',
+      success = await auth.authenticate(
+        localizedReason: strings.unlockReason,
         biometricOnly: true,
         persistAcrossBackgrounding: true,
       );
-      if (mounted && success) setState(() => locked = false);
-    } finally {
-      if (mounted) setState(() => authenticating = false);
+    } catch (_) {
+      success = false;
     }
+    if (!mounted) return;
+    setState(() {
+      authenticating = false;
+      failed = !success;
+      if (success) {
+        locked = false;
+        promptShown = false;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     if (!widget.enabled || !locked) return widget.child;
+    final strings = AppStrings.of(context);
+    final theme = Theme.of(context);
     return Scaffold(
-      body: Center(
-        child: FilledButton.icon(
-          onPressed: authenticating ? null : _unlock,
-          icon: const Icon(Icons.fingerprint),
-          label: const Text('Unlock'),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.lock_outline_rounded,
+                  size: 56,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  strings.lockedTitle,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  failed ? strings.unlockFailed : strings.lockedBody,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: failed
+                        ? theme.colorScheme.error
+                        : theme.colorScheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                FilledButton.icon(
+                  onPressed: authenticating ? null : _unlock,
+                  icon: authenticating
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        )
+                      : const Icon(Icons.fingerprint),
+                  label: Text(strings.unlock),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
