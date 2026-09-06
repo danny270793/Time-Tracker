@@ -87,6 +87,17 @@ class AppStrings {
   String get privacy => es ? 'Política de privacidad' : 'Privacy policy';
   String get terms => es ? 'Términos de uso' : 'Terms of use';
   String get newHabit => es ? 'Nuevo hábito' : 'New habit';
+  String get editHabit => es ? 'Editar hábito' : 'Edit habit';
+  String get lockedTitle => es ? 'App bloqueada' : 'App locked';
+  String get lockedBody => es
+      ? 'Desbloquea con tu biometría para volver a tus hábitos.'
+      : 'Unlock with biometrics to get back to your habits.';
+  String get unlock => es ? 'Desbloquear' : 'Unlock';
+  String get unlockReason =>
+      es ? 'Desbloquea Habit tracker' : 'Unlock Habit tracker';
+  String get unlockFailed => es
+      ? 'No se pudo verificar tu identidad. Inténtalo de nuevo.'
+      : "Couldn't verify your identity. Try again.";
   String get habitName => es ? 'Nombre del hábito' : 'Habit name';
   String get save => es ? 'Guardar' : 'Save';
   String get today => es ? 'Hoy' : 'Today';
