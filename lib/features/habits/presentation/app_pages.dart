@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/app_preferences.dart';
+import '../../../core/developer_info_section.dart';
 import '../../auth/session_controller.dart';
 import '../domain/habit.dart';
 import 'habits_cubit.dart';
@@ -89,17 +90,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _view = 0;
 
-  Future<void> _showCreate() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: context.read<HabitsCubit>(),
-        child: const CreateHabitSheet(),
-      ),
-    );
-  }
+  Future<void> _showCreate() => openHabitEditor(context);
 
   @override
   Widget build(BuildContext context) {
@@ -941,13 +932,11 @@ class _MonthCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: .12),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: Border.all(
+              color: Theme.of(
+                context,
+              ).colorScheme.outlineVariant.withValues(alpha: .5),
+            ),
           ),
           child: Column(
             children: [
@@ -1069,8 +1058,18 @@ class HabitDetailPage extends StatelessWidget {
     }
     final complete = habit.completedDays.contains(dayKey(DateTime.now()));
     final color = habitColor(habit);
+    final editable = habit;
     return Scaffold(
-      appBar: AppBar(title: Text(habit.name)),
+      appBar: AppBar(
+        title: Text(habit.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: strings.editHabit,
+            onPressed: () => openHabitEditor(context, habit: editable),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
@@ -1179,13 +1178,29 @@ class HabitDetailPage extends StatelessWidget {
   }
 }
 
-class CreateHabitSheet extends StatefulWidget {
-  const CreateHabitSheet({super.key});
-  @override
-  State<CreateHabitSheet> createState() => _CreateHabitSheetState();
+Future<void> openHabitEditor(BuildContext context, {Habit? habit}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => BlocProvider.value(
+      value: context.read<HabitsCubit>(),
+      child: HabitEditorSheet(habit: habit),
+    ),
+  );
 }
 
-class _CreateHabitSheetState extends State<CreateHabitSheet> {
+class HabitEditorSheet extends StatefulWidget {
+  const HabitEditorSheet({super.key, this.habit});
+
+  /// Creates a habit when null, otherwise edits [habit].
+  final Habit? habit;
+
+  @override
+  State<HabitEditorSheet> createState() => _HabitEditorSheetState();
+}
+
+class _HabitEditorSheetState extends State<HabitEditorSheet> {
   final _name = TextEditingController();
   final _colors = habitPalette;
   final _icons = habitIconChoices;
@@ -1193,9 +1208,34 @@ class _CreateHabitSheetState extends State<CreateHabitSheet> {
   int _icon = 0;
 
   @override
+  void initState() {
+    super.initState();
+    final habit = widget.habit;
+    if (habit == null) return;
+    _name.text = habit.name;
+    final color = _colors.indexWhere((item) => item.toARGB32() == habit.color);
+    if (color != -1) _color = color;
+    final icon = _icons.indexWhere((item) => item.codePoint == habit.icon);
+    if (icon != -1) _icon = icon;
+  }
+
+  @override
   void dispose() {
     _name.dispose();
     super.dispose();
+  }
+
+  void _save() {
+    final cubit = context.read<HabitsCubit>();
+    final habit = widget.habit;
+    final color = _colors[_color].toARGB32();
+    final icon = _icons[_icon].codePoint;
+    if (habit == null) {
+      cubit.add(name: _name.text, color: color, icon: icon);
+    } else {
+      cubit.edit(id: habit.id, name: _name.text, color: color, icon: icon);
+    }
+    Navigator.pop(context);
   }
 
   @override
@@ -1216,7 +1256,9 @@ class _CreateHabitSheetState extends State<CreateHabitSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SheetHeader(strings.newHabit),
+            SheetHeader(
+              widget.habit == null ? strings.newHabit : strings.editHabit,
+            ),
             const SizedBox(height: 12),
             Padding(
               padding: gutter,
@@ -1256,6 +1298,7 @@ class _CreateHabitSheetState extends State<CreateHabitSheet> {
             Padding(
               padding: gutter,
               child: Wrap(
+                alignment: WrapAlignment.center,
                 spacing: 9,
                 runSpacing: 9,
                 children: [
@@ -1283,16 +1326,7 @@ class _CreateHabitSheetState extends State<CreateHabitSheet> {
               padding: gutter,
               child: FilledButton(
                 key: const ValueKey('save-habit'),
-                onPressed: _name.text.trim().isEmpty
-                    ? null
-                    : () async {
-                        await context.read<HabitsCubit>().add(
-                          name: _name.text,
-                          color: _colors[_color].toARGB32(),
-                          icon: _icons[_icon].codePoint,
-                        );
-                        if (context.mounted) Navigator.pop(context);
-                      },
+                onPressed: _name.text.trim().isEmpty ? null : _save,
                 child: Text(strings.save),
               ),
             ),
@@ -1592,18 +1626,23 @@ class SheetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
+    padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       children: [
         IconButton(
           onPressed: () => Navigator.maybePop(context),
-          tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: const BackButtonIcon(),
         ),
-        const SizedBox(width: 4),
         Expanded(
-          child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
         ),
+        // Balances the leading icon button so the title stays centered.
+        const SizedBox(width: 48),
       ],
     ),
   );
@@ -1673,13 +1712,13 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
+    final signedIn = sessionController?.status == SessionStatus.authenticated;
     return Scaffold(
       appBar: AppBar(title: Text(strings.settings)),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 20),
         children: [
-          if (sessionController != null &&
-              sessionController!.status == SessionStatus.authenticated) ...[
+          if (signedIn) ...[
             _SectionTitle(strings.es ? 'Cuenta' : 'Account'),
             ListTile(
               contentPadding: _tilePadding,
@@ -1743,18 +1782,22 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
           ),
-          ListTile(
-            contentPadding: _tilePadding,
-            leading: const Icon(Icons.file_upload_outlined),
-            title: Text(strings.exportJson),
-            onTap: () => _export(context),
-          ),
-          ListTile(
-            contentPadding: _tilePadding,
-            leading: const Icon(Icons.file_download_outlined),
-            title: Text(strings.importJson),
-            onTap: () => _import(context),
-          ),
+          // Signed-in habits live in Supabase, so the JSON backup is only
+          // offered while the data is local to this device.
+          if (!signedIn) ...[
+            ListTile(
+              contentPadding: _tilePadding,
+              leading: const Icon(Icons.file_upload_outlined),
+              title: Text(strings.exportJson),
+              onTap: () => _export(context),
+            ),
+            ListTile(
+              contentPadding: _tilePadding,
+              leading: const Icon(Icons.file_download_outlined),
+              title: Text(strings.importJson),
+              onTap: () => _import(context),
+            ),
+          ],
           const Divider(height: 32, indent: 20, endIndent: 20),
           _SectionTitle(strings.about),
           _legalTile(context, LegalInfoKind.about, Icons.info_outline),
@@ -2154,6 +2197,14 @@ class LegalInfoPage extends StatelessWidget {
               body: section.$2,
               callout: section.$3,
             ),
+          if (kind == LegalInfoKind.about)
+            DeveloperInfoSection(
+              heading: strings.developer,
+              githubLabel: strings.developerGithub,
+              websiteLabel: strings.developerWebsite,
+              youtubeLabel: strings.developerYoutube,
+              linkedinLabel: strings.developerLinkedin,
+            ),
         ],
       ),
     );
@@ -2185,31 +2236,33 @@ class LegalInfoPage extends StatelessWidget {
           (
             s.es ? 'Tus datos' : 'Your data',
             s.es
-                ? 'Tus hábitos se guardan localmente en este dispositivo. No necesitas una cuenta.'
-                : 'Your habits are stored locally on this device. No account is required.',
+                ? 'Como invitado, tus hábitos se guardan en este dispositivo. Si inicias sesión, se sincronizan con Supabase. La cuenta es opcional.'
+                : 'As a guest, your habits stay on this device. If you sign in, they sync with Supabase. An account is optional.',
             false,
           ),
         ],
         LegalInfoKind.privacy => [
           (
-            s.es ? 'Qué guardas' : 'What you store',
+            s.es ? 'Cuenta (opcional)' : 'Account (optional)',
             s.es
-                ? 'Nombres, colores, iconos y fechas de cumplimiento de tus hábitos.'
-                : 'Habit names, colors, icons, and completion dates.',
+                ? 'Puedes usar la app sin cuenta. Si inicias sesión, la autenticación la proporciona Supabase. Tu correo y credenciales los procesa Supabase; esta app no guarda tu contraseña.'
+                : 'You can use the app without an account. If you sign in, authentication is provided by Supabase. Your email and credentials are processed by Supabase; this app does not store your password.',
             false,
           ),
           (
-            s.es ? 'Dónde reside' : 'Where it lives',
             s.es
-                ? 'Los datos permanecen en tu dispositivo. Exportar o importar siempre requiere tu acción.'
-                : 'Data stays on your device. Exporting or importing always requires your action.',
+                ? 'Qué guardamos hoy — y más adelante'
+                : 'What we store today — and later',
+            s.es
+                ? 'Como invitado, tus hábitos se quedan en este dispositivo. Si has iniciado sesión, tus hábitos se guardan en Supabase ligados a tu cuenta. En el futuro también podremos guardar otra información generada por la app (por ejemplo favoritos) en Supabase cuando hayas iniciado sesión.'
+                : 'As a guest, your habits stay on this device. If you are signed in, your habits are stored in Supabase and tied to your account. In the future we may also store other app-generated information (for example favorites) in Supabase when you are signed in.',
             false,
           ),
           (
             s.es ? 'Compartir y anuncios' : 'Sharing and ads',
             s.es
-                ? 'No vendemos datos ni los usamos para anuncios.'
-                : 'We do not sell your data or use it for advertising.',
+                ? 'No vendemos datos ni los usamos para anuncios. El inicio de sesión y, si aplica, la sincronización los procesa Supabase.'
+                : 'We do not sell your data or use it for advertising. Sign-in and, when used, sync are processed by Supabase.',
             true,
           ),
         ],
@@ -2217,8 +2270,15 @@ class LegalInfoPage extends StatelessWidget {
           (
             s.es ? 'Aceptación' : 'Acceptance',
             s.es
-                ? 'Al usar Habit tracker aceptas estos términos.'
-                : 'By using Habit tracker, you accept these terms.',
+                ? 'Al usar Habit tracker aceptas estos términos. El inicio de sesión es opcional y lo gestiona Supabase.'
+                : 'By using Habit tracker, you accept these terms. Sign-in is optional and is handled by Supabase.',
+            false,
+          ),
+          (
+            s.es ? 'Tus datos' : 'Your data',
+            s.es
+                ? 'Sin cuenta, los hábitos se quedan en el dispositivo. Con sesión iniciada se guardan en Supabase. Más adelante podremos sincronizar datos adicionales generados por la app.'
+                : 'Without an account, habits stay on the device. When signed in they are stored in Supabase. Later we may sync additional app-generated data the same way.',
             false,
           ),
           (
@@ -2231,8 +2291,8 @@ class LegalInfoPage extends StatelessWidget {
           (
             s.es ? 'Responsabilidad' : 'Your responsibility',
             s.es
-                ? 'Eres responsable de tu dispositivo y tus copias exportadas.'
-                : 'You are responsible for your device and exported backups.',
+                ? 'Eres responsable de tu dispositivo, tu cuenta y tus copias exportadas.'
+                : 'You are responsible for your device, your account, and exported backups.',
             false,
           ),
         ],
