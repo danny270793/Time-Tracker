@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/app_preferences.dart';
+import '../../../core/developer_info_section.dart';
 import '../../auth/session_controller.dart';
 import '../domain/habit.dart';
 import 'habits_cubit.dart';
@@ -2195,6 +2196,14 @@ class LegalInfoPage extends StatelessWidget {
               title: section.$1,
               body: section.$2,
               callout: section.$3,
+            ),
+          if (kind == LegalInfoKind.about)
+            DeveloperInfoSection(
+              heading: strings.developer,
+              githubLabel: strings.developerGithub,
+              websiteLabel: strings.developerWebsite,
+              youtubeLabel: strings.developerYoutube,
+              linkedinLabel: strings.developerLinkedin,
             ),
         ],
       ),

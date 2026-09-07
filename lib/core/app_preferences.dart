@@ -84,6 +84,11 @@ class AppStrings {
   String get exportJson => es ? 'Exportar JSON' : 'Export JSON';
   String get importJson => es ? 'Importar JSON' : 'Import JSON';
   String get about => es ? 'Acerca de' : 'About';
+  String get developer => es ? 'Desarrollador' : 'Developer';
+  String get developerGithub => 'GitHub';
+  String get developerWebsite => es ? 'Sitio web' : 'Website';
+  String get developerYoutube => 'YouTube';
+  String get developerLinkedin => 'LinkedIn';
   String get privacy => es ? 'Política de privacidad' : 'Privacy policy';
   String get terms => es ? 'Términos de uso' : 'Terms of use';
   String get newHabit => es ? 'Nuevo hábito' : 'New habit';
