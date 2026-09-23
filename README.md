@@ -1,4 +1,4 @@
-# Habit tracker
+# Danny's Habits Tracker
 
 Daily habit tracking. Guest data stays on the device. Signed-in data is stored per user in Supabase.
 
