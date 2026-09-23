@@ -134,6 +134,10 @@ class HabitsCubit extends Cubit<HabitsState> {
     ]);
   }
 
+  Future<void> delete(String id) async {
+    await _commit(state.habits.where((habit) => habit.id != id).toList());
+  }
+
   HabitDashboard dashboard([DateTime? now]) =>
       BuildHabitDashboard()(state.habits, now ?? DateTime.now());
 
