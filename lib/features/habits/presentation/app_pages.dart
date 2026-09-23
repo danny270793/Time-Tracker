@@ -1068,6 +1068,14 @@ class HabitDetailPage extends StatelessWidget {
             tooltip: strings.editHabit,
             onPressed: () => openHabitEditor(context, habit: editable),
           ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: strings.deleteHabit,
+            onPressed: () async {
+              final deleted = await confirmDeleteHabit(context, editable);
+              if (deleted && context.mounted) Navigator.pop(context);
+            },
+          ),
         ],
       ),
       body: ListView(
@@ -1176,6 +1184,36 @@ class HabitDetailPage extends StatelessWidget {
             ),
     );
   }
+}
+
+Future<bool> confirmDeleteHabit(BuildContext context, Habit habit) async {
+  final strings = AppStrings.of(context);
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(strings.deleteHabit),
+      content: Text('${habit.name}\n\n${strings.deleteHabitConfirm}'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: Text(
+            MaterialLocalizations.of(dialogContext).cancelButtonLabel,
+          ),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+          ),
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: Text(strings.deleteAction),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return false;
+  await context.read<HabitsCubit>().delete(habit.id);
+  return true;
 }
 
 Future<void> openHabitEditor(BuildContext context, {Habit? habit}) {
@@ -1666,7 +1704,10 @@ class SettingsPage extends StatelessWidget {
     await file.writeAsString(json);
     if (context.mounted) {
       await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path)], title: 'Habit tracker export'),
+        ShareParams(
+          files: [XFile(file.path)],
+          title: "Danny's Habits Tracker export",
+        ),
       );
     }
   }
@@ -2045,10 +2086,20 @@ class CompletedHabitsPage extends StatelessWidget {
                     '${strings.completed}: '
                     '${habit.archivedAt?.toLocal().toString().split(' ').first}',
                   ),
-                  trailing: TextButton(
-                    onPressed: () =>
-                        context.read<HabitsCubit>().restore(habit.id),
-                    child: Text(strings.reactivate),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        onPressed: () =>
+                            context.read<HabitsCubit>().restore(habit.id),
+                        child: Text(strings.reactivate),
+                      ),
+                      IconButton(
+                        tooltip: strings.deleteHabit,
+                        onPressed: () => confirmDeleteHabit(context, habit),
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -2167,16 +2218,23 @@ class LegalInfoPage extends StatelessWidget {
       LegalInfoKind.terms => strings.terms,
     };
     final icon = switch (kind) {
-      LegalInfoKind.about => Icons.auto_graph_rounded,
       LegalInfoKind.privacy => Icons.privacy_tip_outlined,
       LegalInfoKind.terms => Icons.article_outlined,
+      LegalInfoKind.about => null,
     };
     return Scaffold(
       appBar: AppBar(),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
         children: [
-          CircleAvatar(radius: 38, child: Icon(icon, size: 38)),
+          CircleAvatar(
+            radius: 38,
+            backgroundColor: const Color(0xFF5B52ED),
+            backgroundImage: kind == LegalInfoKind.about
+                ? const AssetImage('assets/habit_tracker_icon.png')
+                : null,
+            child: icon == null ? null : Icon(icon, size: 38),
+          ),
           const SizedBox(height: 18),
           Text(
             title,
@@ -2270,8 +2328,8 @@ class LegalInfoPage extends StatelessWidget {
           (
             s.es ? 'Aceptación' : 'Acceptance',
             s.es
-                ? 'Al usar Habit tracker aceptas estos términos. El inicio de sesión es opcional y lo gestiona Supabase.'
-                : 'By using Habit tracker, you accept these terms. Sign-in is optional and is handled by Supabase.',
+                ? "Al usar Danny's Habits Tracker aceptas estos términos. El inicio de sesión es opcional y lo gestiona Supabase."
+                : "By using Danny's Habits Tracker, you accept these terms. Sign-in is optional and is handled by Supabase.",
             false,
           ),
           (
