@@ -69,7 +69,7 @@ class AppStrings {
   final Locale locale;
   bool get es => locale.languageCode == 'es';
 
-  String get appName => 'Habit tracker';
+  String get appName => "Danny's Habits Tracker";
   String get settings => es ? 'Ajustes' : 'Settings';
   String get appearance => es ? 'Apariencia' : 'Appearance';
   String get language => es ? 'Idioma' : 'Language';
@@ -93,13 +93,18 @@ class AppStrings {
   String get terms => es ? 'Términos de uso' : 'Terms of use';
   String get newHabit => es ? 'Nuevo hábito' : 'New habit';
   String get editHabit => es ? 'Editar hábito' : 'Edit habit';
+  String get deleteHabit => es ? 'Eliminar hábito' : 'Delete habit';
+  String get deleteHabitConfirm => es
+      ? 'Se borrará este hábito y su historial. Esta acción no se puede deshacer.'
+      : 'This habit and its history will be removed. This cannot be undone.';
+  String get deleteAction => es ? 'Eliminar' : 'Delete';
   String get lockedTitle => es ? 'App bloqueada' : 'App locked';
   String get lockedBody => es
       ? 'Desbloquea con tu biometría para volver a tus hábitos.'
       : 'Unlock with biometrics to get back to your habits.';
   String get unlock => es ? 'Desbloquear' : 'Unlock';
   String get unlockReason =>
-      es ? 'Desbloquea Habit tracker' : 'Unlock Habit tracker';
+      es ? "Desbloquea Danny's Habits Tracker" : "Unlock Danny's Habits Tracker";
   String get unlockFailed => es
       ? 'No se pudo verificar tu identidad. Inténtalo de nuevo.'
       : "Couldn't verify your identity. Try again.";
