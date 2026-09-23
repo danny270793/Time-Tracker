@@ -102,4 +102,17 @@ void main() {
     expect(cubit.state.active.single.completedDays, {'2026-09-01'});
     expect(cubit.state.active.single.isArchived, isFalse);
   });
+
+  test('delete removes the habit permanently', () async {
+    final repository = MemoryRepository([
+      habit('a', 'Read', days: {'2026-09-01'}),
+      habit('b', 'Walk'),
+    ]);
+    final cubit = HabitsCubit(repository);
+    await cubit.load();
+
+    await cubit.delete('a');
+    expect(cubit.state.habits.map((habit) => habit.id), ['b']);
+    expect(repository.items.map((habit) => habit.id), ['b']);
+  });
 }
