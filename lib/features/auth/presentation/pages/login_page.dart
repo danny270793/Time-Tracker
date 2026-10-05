@@ -54,7 +54,17 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.auto_graph_rounded, size: 64),
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(19),
+                      child: Image.asset(
+                        'assets/habit_tracker_icon.png',
+                        width: 88,
+                        height: 88,
+                        filterQuality: FilterQuality.medium,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 20),
                   Text(
                     l10n.signIn,
@@ -67,9 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                     controller: email,
                     autofillHints: const [AutofillHints.email],
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: l10n.email,
-                    ),
+                    decoration: InputDecoration(labelText: l10n.email),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -78,9 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: true,
                     autofillHints: const [AutofillHints.password],
                     onSubmitted: (_) => busy ? null : _signIn(),
-                    decoration: InputDecoration(
-                      labelText: l10n.password,
-                    ),
+                    decoration: InputDecoration(labelText: l10n.password),
                   ),
                   if (visibleError != null) ...[
                     const SizedBox(height: 12),
