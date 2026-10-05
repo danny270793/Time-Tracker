@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:time_tracker/features/habits/data/habits_migrator.dart';
-import 'package:time_tracker/features/habits/data/local_habits_repository.dart';
-import 'package:time_tracker/features/habits/domain/habit.dart';
-import 'package:time_tracker/features/habits/domain/habits_repository.dart';
+import 'package:time_tracker/features/habits/data/repositories/habits_migrator.dart';
+import 'package:time_tracker/features/habits/data/repositories/local_habits_repository.dart';
+import 'package:time_tracker/features/habits/domain/entities/habit.dart';
+import 'package:time_tracker/features/habits/domain/repositories/habits_repository.dart';
 
 class CloudRepository implements HabitsRepository {
   CloudRepository(this.items, {this.failSave = false});

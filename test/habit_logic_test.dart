@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:time_tracker/features/habits/domain/habit.dart';
-import 'package:time_tracker/features/habits/domain/habits_repository.dart';
-import 'package:time_tracker/features/habits/presentation/habits_cubit.dart';
+import 'package:time_tracker/features/habits/domain/entities/habit.dart';
+import 'package:time_tracker/features/habits/domain/repositories/habits_repository.dart';
+import 'package:time_tracker/features/habits/presentation/cubit/habits_cubit.dart';
+import 'package:time_tracker/features/habits/domain/entities/habit_import.dart';
+import 'package:time_tracker/features/habits/domain/usecases/build_habit_dashboard_usecase.dart';
 
 class MemoryRepository implements HabitsRepository {
   MemoryRepository(this.items);

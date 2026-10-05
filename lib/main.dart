@@ -5,18 +5,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'core/app_preferences.dart';
-import 'features/auth/auth_pages.dart';
-import 'features/auth/auth_service.dart';
-import 'features/auth/session_controller.dart';
-import 'features/habits/data/habits_migrator.dart';
-import 'features/habits/data/local_habits_repository.dart';
-import 'features/habits/data/supabase_habits_repository.dart';
-import 'features/habits/presentation/app_pages.dart';
-import 'features/habits/presentation/habits_cubit.dart';
+import 'core/di/injection.dart';
+import 'core/locale/app_locale_controller.dart';
+import 'core/logger/app_logger.dart';
+import 'core/security/app_biometric_unlock_controller.dart';
+import 'core/theme/app_theme_controller.dart';
+import 'features/auth/presentation/cubit/session_cubit.dart';
+import 'features/auth/presentation/cubit/session_state.dart';
+import 'features/habits/domain/repositories/habits_repository.dart';
+import 'features/habits/presentation/cubit/habits_cubit.dart';
+import 'l10n/app_localizations.dart';
+import 'router.dart';
+import 'widgets/biometric_lock_gate.dart';
 
 // Dart's HttpClient (used under the hood by package:http and thus by
 // Supabase) has its own bundled trust store, independent of the Android/iOS
@@ -30,8 +33,9 @@ Future<void> _trustDevProxyCertificateIfNeeded() async {
     SecurityContext.defaultContext.setTrustedCertificatesBytes(
       bytes.buffer.asUint8List(),
     );
-  } catch (_) {
-    // No dev proxy certificate bundled; nothing to trust.
+    AppLogger.info('trusted dev proxy certificate');
+  } catch (e) {
+    AppLogger.info('no dev proxy certificate to trust: $e');
   }
 }
 
@@ -46,59 +50,115 @@ Future<void> main() async {
       'Run with --dart-define-from-file=.env.json.',
     );
   }
+  AppLogger.info('initializing Supabase');
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
+  AppLogger.info('Supabase initialized');
 
-  final preferences = AppPreferences();
-  await preferences.load();
-  final local = LocalHabitsRepository();
-  SupabaseHabitsRepository cloud(String userId) =>
-      SupabaseHabitsRepository(Supabase.instance.client, userId);
-  final session = SessionController(
-    auth: SupabaseAuthService(Supabase.instance.client),
-    migrator: HabitsMigrator(local: local, cloudForUser: cloud),
-    localRepository: local,
-    cloudRepository: cloud,
-  );
-  runApp(HabitFlowApp(preferences: preferences, sessionController: session));
-  unawaited(session.initialize());
+  setupDi();
+  AppLogger.info('DI setup complete');
+  await loadAppControllers();
+
+  runApp(const App());
+  unawaited(getIt<SessionCubit>().initialize());
 }
 
-class HabitFlowApp extends StatelessWidget {
-  const HabitFlowApp({
-    super.key,
-    required this.preferences,
-    this.sessionController,
-  });
+/// Restores persisted language, theme and biometric preferences.
+Future<void> loadAppControllers() async {
+  await getIt<AppLocaleController>().load();
+  await getIt<AppThemeController>().load();
+  await getIt<AppBiometricUnlockController>().load();
+}
 
-  final AppPreferences preferences;
-  final SessionController? sessionController;
+class App extends StatefulWidget {
+  const App({super.key});
+
+  static Locale? _resolveDeviceLocale(
+    Locale? deviceLocale,
+    Iterable<Locale> supported,
+  ) {
+    if (deviceLocale == null) return supported.first;
+    for (final loc in supported) {
+      if (loc.languageCode == deviceLocale.languageCode) return loc;
+    }
+    return supported.first;
+  }
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  late final SessionCubit _session = getIt<SessionCubit>();
+  late final SessionRouterRefresh _routerRefresh = SessionRouterRefresh(
+    _session.stream,
+  );
+  late final GoRouter _router = buildRouter(_session, _routerRefresh);
+  late final HabitsCubit _habits = getIt<HabitsCubit>(
+    param1: _session.repository,
+  )..load();
+
+  /// Identity of the repository [_habits] is attached to (`null` = guest).
+  String? _attachedUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _attachedUserId = _session.state.user?.id;
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    _routerRefresh.dispose();
+    _habits.close();
+    super.dispose();
+  }
+
+  void _onSessionChanged(BuildContext context, SessionState state) {
+    final userId = state.user?.id;
+    if (userId == _attachedUserId) return;
+    _attachedUserId = userId;
+    final HabitsRepository repository = _session.repository;
+    unawaited(_habits.attach(repository));
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: preferences,
-      builder: (context, _) => MaterialApp(
-        title: "Danny's Habits Tracker",
-        debugShowCheckedModeBanner: false,
-        locale: preferences.locale,
-        supportedLocales: const [Locale('en'), Locale('es')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        themeMode: preferences.themeMode,
-        theme: _theme(Brightness.light),
-        darkTheme: _theme(Brightness.dark),
-        home: sessionController == null
-            ? BlocProvider(
-                create: (_) => HabitsCubit(LocalHabitsRepository())..load(),
-                child: HomePage(preferences: preferences),
-              )
-            : SessionGate(
-                controller: sessionController!,
-                preferences: preferences,
+    final appLocale = getIt<AppLocaleController>();
+    final appTheme = getIt<AppThemeController>();
+    final bio = getIt<AppBiometricUnlockController>();
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _session),
+        BlocProvider.value(value: _habits),
+      ],
+      child: BlocListener<SessionCubit, SessionState>(
+        listener: _onSessionChanged,
+        child: ListenableBuilder(
+          listenable: Listenable.merge([appLocale, appTheme]),
+          builder: (context, _) => MaterialApp.router(
+            onGenerateTitle: (context) =>
+                AppLocalizations.of(context)!.appTitle,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: appLocale.materialAppLocale,
+            localeResolutionCallback: App._resolveDeviceLocale,
+            themeMode: appTheme.themeMode,
+            theme: _theme(Brightness.light),
+            darkTheme: _theme(Brightness.dark),
+            routerConfig: _router,
+            builder: (context, child) => ListenableBuilder(
+              listenable: bio,
+              builder: (context, _) => BlocBuilder<SessionCubit, SessionState>(
+                builder: (context, session) => BiometricLockGate(
+                  enabled: session.isAuthenticated && bio.enabled,
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -123,6 +183,9 @@ class HabitFlowApp extends StatelessWidget {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        clipBehavior: Clip.antiAlias,
       ),
     );
   }

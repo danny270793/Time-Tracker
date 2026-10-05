@@ -64,3 +64,13 @@ Either of:
 - `WIP` / `misc changes`
 
 When proposing or creating commits, **always** use this format. If there are multiple unrelated changes, **split them into several commits** instead of one vague message.
+
+## Project layout (mirrors the Wallet app)
+
+- `lib/main.dart` — bootstrap (Supabase, DI, controllers) and the `App` widget (`MaterialApp.router`).
+- `lib/router.dart` — `go_router` routes; redirects follow `SessionCubit` (splash / login / habits).
+- `lib/core/` — `di/injection.dart` (`get_it`), `locale/`, `theme/`, `security/` (`ChangeNotifier` controllers), `logger/`, `utils/`.
+- `lib/features/<feature>/` — `data/{datasources,repositories}`, `domain/{entities,repositories,usecases}`, `presentation/{cubit,pages}` (`flutter_bloc`).
+- `lib/pages/` — app screens (home, habit detail, dashboard, settings, legal info, ...).
+- `lib/widgets/` — reusable widgets (bottom sheets, heatmap, developer info, ...).
+- `lib/l10n/` — `app_en.arb` / `app_es.arb` and the generated `app_localizations*.dart` (`flutter gen-l10n`, see `l10n.yaml`). Add every user-visible string to both ARB files.

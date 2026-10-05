@@ -1,14 +1,15 @@
-# Danny's Habits Tracker
+# Habit Tracker
 
 Daily habit tracking. Guest data stays on the device. Signed-in data is stored per user in Supabase.
 
-Flutter **3.47.2** (see [`.tool-versions`](.tool-versions)). Package: `io.github.danny270793.mobile.time_tracker`.
+Flutter **3.47.2** (see [`.tool-versions`](.tool-versions)). Android application ID: `io.github.danny270793.timetracker`. iOS bundle ID: `io.github.danny270793.timetracker`.
 
 ## Quick start
 
 ```sh
 cp .env.example.json .env.json   # then fill in real values
 asdf exec flutter pub get
+asdf exec flutter gen-l10n
 asdf exec flutter run --dart-define-from-file=.env.json
 ```
 

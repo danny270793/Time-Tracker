@@ -1,0 +1,185 @@
+{
+  "@@locale": "en",
+  "appTitle": "Habit Tracker",
+  "signIn": "Sign in",
+  "email": "Email",
+  "password": "Password",
+  "continueWithoutAccount": "Continue without account",
+  "fieldRequired": "Required",
+  "unexpectedError": "An unexpected error occurred",
+  "habits": "Habits",
+  "habitsCount": "{count} habits",
+  "@habitsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "emptyHabits": "Create your first habit",
+  "newHabit": "New habit",
+  "editHabit": "Edit habit",
+  "deleteHabit": "Delete habit",
+  "deleteHabitConfirm": "This habit and its history will be removed. This cannot be undone.",
+  "deleteAction": "Delete",
+  "habitName": "Habit name",
+  "save": "Save",
+  "today": "Today",
+  "thisWeek": "This week",
+  "streaks": "Streaks",
+  "library": "Library",
+  "dashboard": "Dashboard",
+  "last7Days": "Last 7 days",
+  "last30Days": "Last 30 days",
+  "last3Months": "Last 3 months",
+  "rangeTitle": "Range",
+  "reactivate": "Reactivate",
+  "markComplete": "Mark habit as completed",
+  "completedHabits": "Completed habits",
+  "noCompletedHabits": "No completed habits yet",
+  "completedOn": "Completed: {date}",
+  "@completedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "importConflicts": "Resolve import conflicts",
+  "importMerge": "Merge",
+  "importRename": "Rename as new",
+  "importApply": "Apply import",
+  "remainingToday": "Still open today",
+  "remainingTodayCount": "{count} still open today",
+  "@remainingTodayCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "atRiskList": "At risk: {names}",
+  "@atRiskList": {
+    "placeholders": {
+      "names": {"type": "String"}
+    }
+  },
+  "allCaughtUp": "All caught up today",
+  "startToday": "Start today",
+  "streakDays": "{count} days",
+  "@streakDays": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "activeCompletedSummary": "{active} active · {completed} completed",
+  "@activeCompletedSummary": {
+    "placeholders": {
+      "active": {"type": "int"},
+      "completed": {"type": "int"}
+    }
+  },
+  "tapToComplete": "Tap to complete",
+  "currentStreak": "Current streak",
+  "totalCheckIns": "Days completed",
+  "markToday": "Mark today",
+  "markOtherDay": "Another day",
+  "pickDay": "Pick a day",
+  "dayMarked": "{date} marked",
+  "@dayMarked": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "dayUnmarked": "{date} unmarked",
+  "@dayUnmarked": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "weekdaysShort": "Mo,Tu,We,Th,Fr,Sa,Su",
+  "@weekdaysShort": {
+    "description": "Comma-separated short weekday names, Monday first."
+  },
+  "monthsShort": "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC",
+  "@monthsShort": {
+    "description": "Comma-separated short month names, January first."
+  },
+  "undoToday": "Undo today",
+  "doneToday": "Done today",
+  "pendingToday": "Pending today",
+  "todayMarked": "Marked for today",
+  "todayUnmarked": "Unmarked for today",
+  "undo": "Undo",
+  "settings": "Settings",
+  "settingsProfileSection": "Profile",
+  "settingsChangeEmail": "Change email",
+  "settingsChangeEmailDialogTitle": "Change email",
+  "settingsNewEmailLabel": "New email",
+  "settingsChangeEmailSubmit": "Update",
+  "settingsChangeEmailSuccess": "Check your new email to confirm the change.",
+  "settingsChangeEmailInvalid": "Enter a valid email address.",
+  "settingsChangeEmailSameAsCurrent": "That is already your email.",
+  "settingsChangePassword": "Change password",
+  "settingsChangePasswordSubtitle": "Updates the password you use to sign in.",
+  "settingsChangePasswordDialogTitle": "Change password",
+  "settingsNewPasswordLabel": "New password",
+  "settingsConfirmNewPasswordLabel": "Confirm new password",
+  "settingsChangePasswordSubmit": "Update password",
+  "settingsChangePasswordSuccess": "Your password was updated.",
+  "settingsPasswordsDoNotMatch": "Passwords do not match.",
+  "settingsPasswordTooShort": "Use at least 6 characters.",
+  "settingsSecuritySection": "Security",
+  "settingsBiometricUnlockTitle": "Face ID & fingerprint",
+  "settingsBiometricUnlockSubtitle": "Use biometrics to unlock the app.",
+  "settingsBiometricUnavailable": "Biometric unlock is not available on this device.",
+  "settingsBiometricAuthReason": "Confirm to enable biometric unlock.",
+  "settingsBiometricResumeReason": "Unlock Habit Tracker",
+  "biometricLockTitle": "App locked",
+  "biometricLockBody": "Unlock with biometrics to get back to your habits.",
+  "biometricLockFailed": "Couldn't verify your identity. Try again.",
+  "biometricLockUnlockButton": "Unlock",
+  "settingsAppearance": "Appearance",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "System default",
+  "settingsLanguageEnglish": "English",
+  "settingsLanguageSpanish": "Spanish",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "System default",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsHabitsSection": "Habits",
+  "settingsExportJson": "Export JSON",
+  "settingsImportJson": "Import JSON",
+  "settingsExportShareTitle": "Habit Tracker export",
+  "settingsImportInvalidFile": "The file is not valid",
+  "signOut": "Sign out",
+  "settingsAboutSection": "About",
+  "settingsAboutApp": "About",
+  "settingsRateApp": "Rate on Google Play",
+  "settingsPrivacyPolicy": "Privacy policy",
+  "settingsTermsOfUse": "Terms of use",
+  "settingsAboutTagline": "Habits and streaks in one place.",
+  "settingsAboutVersionLabel": "Version",
+  "settingsAboutFeaturesHeading": "What you can do",
+  "settingsAboutBulletHabits": "Create habits and check in each day.",
+  "settingsAboutBulletViews": "Switch between heatmap, list, and month views, and reorder your list.",
+  "settingsAboutBulletDashboard": "Track streaks and weekly progress on the dashboard.",
+  "settingsAboutDataHeading": "Your data",
+  "settingsAboutDataBody": "As a guest, your habits stay on this device. If you sign in, they sync with Supabase. An account is optional.",
+  "settingsAboutDeveloperHeading": "Developer",
+  "settingsAboutDeveloperGithub": "GitHub",
+  "settingsAboutDeveloperWebsite": "Website",
+  "settingsAboutDeveloperYoutube": "YouTube",
+  "settingsAboutDeveloperLinkedin": "LinkedIn",
+  "settingsPrivacyTagline": "How this app treats your information.",
+  "settingsPrivacyDataTitle": "Account (optional)",
+  "settingsPrivacyDataBody": "You can use the app without an account. If you sign in, authentication is provided by Supabase. Your email and credentials are processed by Supabase; this app does not store your password.",
+  "settingsPrivacyInfraTitle": "What we store today — and later",
+  "settingsPrivacyInfraBody": "As a guest, your habits stay on this device. If you are signed in, your habits are stored in Supabase and tied to your account. In the future we may also store other app-generated information (for example favorites) in Supabase when you are signed in.",
+  "settingsPrivacySharingTitle": "Sharing and ads",
+  "settingsPrivacySharingBody": "We do not sell your data or use it for advertising. Sign-in and, when used, sync are processed by Supabase.",
+  "settingsTermsTagline": "Rules for using this app.",
+  "settingsTermsAcceptanceTitle": "Acceptance",
+  "settingsTermsAcceptanceBody": "By using Habit Tracker, you accept these terms. Sign-in is optional and is handled by Supabase.",
+  "settingsTermsDataTitle": "Your data",
+  "settingsTermsDataBody": "Without an account, habits stay on the device. When signed in they are stored in Supabase. Later we may sync additional app-generated data the same way.",
+  "settingsTermsDisclaimerTitle": "Not professional advice",
+  "settingsTermsDisclaimerBody": "The app does not provide medical or professional advice.",
+  "settingsTermsResponsibilitiesTitle": "Your responsibility",
+  "settingsTermsResponsibilitiesBody": "You are responsible for your device, your account, and exported backups."
+}
