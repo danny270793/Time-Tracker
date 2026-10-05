@@ -19,7 +19,13 @@ asdf exec flutter run --dart-define-from-file=.env.json
 - [Fill `.env.json`](docs/environment.md)
 - [Sync Xcode and publish to the App Store](docs/app-store.md)
 - [Bump app version and Flutter SDK](docs/versioning.md)
-- [Supabase schema](docs/supabase.md)
+- [Supabase schema](https://github.com/danny270793/supabase): the `habit_tracker_data` table lives in the shared danny270793/supabase repo
+
+## Database
+
+Habit Tracker shares one Supabase project with Wallet, Family Games, and Hangman. Table `habit_tracker_data` stores one JSON document per `auth.users` id (`habits` jsonb). Guests use local storage only; after sign-in, guest habits merge into the cloud row.
+
+Migrations live in [danny270793/supabase](https://github.com/danny270793/supabase). Create and apply them there, not in this repo. Do not add the service role key to the Flutter app.
 
 ## Agents
 
