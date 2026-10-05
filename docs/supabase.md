@@ -1,4 +1,4 @@
-# Supabase (Habit tracker)
+# Supabase (Habit Tracker)
 
 This app shares the same Supabase project as Wallet. Schema lives in [`supabase/migrations`](../supabase/migrations).
 

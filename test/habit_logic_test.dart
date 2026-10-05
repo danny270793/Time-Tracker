@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:time_tracker/features/habits/domain/habit.dart';
-import 'package:time_tracker/features/habits/domain/habits_repository.dart';
-import 'package:time_tracker/features/habits/presentation/habits_cubit.dart';
+import 'package:time_tracker/features/habits/domain/entities/habit.dart';
+import 'package:time_tracker/features/habits/domain/repositories/habits_repository.dart';
+import 'package:time_tracker/features/habits/presentation/cubit/habits_cubit.dart';
+import 'package:time_tracker/features/habits/domain/entities/habit_import.dart';
+import 'package:time_tracker/features/habits/domain/usecases/build_habit_dashboard_usecase.dart';
 
 class MemoryRepository implements HabitsRepository {
   MemoryRepository(this.items);
@@ -101,5 +103,18 @@ void main() {
     await cubit.restore('a');
     expect(cubit.state.active.single.completedDays, {'2026-09-01'});
     expect(cubit.state.active.single.isArchived, isFalse);
+  });
+
+  test('delete removes the habit permanently', () async {
+    final repository = MemoryRepository([
+      habit('a', 'Read', days: {'2026-09-01'}),
+      habit('b', 'Walk'),
+    ]);
+    final cubit = HabitsCubit(repository);
+    await cubit.load();
+
+    await cubit.delete('a');
+    expect(cubit.state.habits.map((habit) => habit.id), ['b']);
+    expect(repository.items.map((habit) => habit.id), ['b']);
   });
 }
